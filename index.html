@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>P2P Hyper-Share</title>
+<meta name="description" content="Direct browser-to-browser file transfer. No upload, no server storage, no cost." />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">P2P Hyper-Share</span>
+  </div>
+  <div class="link-status" id="linkStatus" data-state="idle">
+    <span class="dot" aria-hidden="true"></span>
+    <span class="link-status-text" id="linkStatusText">Not connected</span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ROOM / PAIRING -->
+  <section class="panel panel-room" id="roomPanel" aria-label="Pairing">
+    <h1 class="room-title">Move a file, not a copy.</h1>
+    <p class="room-sub">Share a room code with one other person. Files travel straight between your two browsers — never through a server.</p>
+
+    <div class="room-actions">
+      <button class="btn btn-primary" id="createRoomBtn" type="button">Create a room</button>
+      <div class="room-join">
+        <input class="input" id="roomCodeInput" type="text" inputmode="text" maxlength="12"
+               placeholder="Enter room code" aria-label="Room code" autocomplete="off" />
+        <button class="btn btn-ghost" id="joinRoomBtn" type="button">Join</button>
+      </div>
+    </div>
+
+    <div class="room-code-display" id="roomCodeDisplay" hidden>
+      <span class="room-code-label">Room code</span>
+      <code class="room-code-value" id="roomCodeValue"></code>
+      <button class="btn btn-small" id="copyRoomCodeBtn" type="button">Copy</button>
+    </div>
+
+    <p class="room-hint" id="roomHint"></p>
+  </section>
+
+  <!-- TELEMETRY (signature element) -->
+  <section class="panel panel-telemetry" id="telemetryPanel" aria-label="Connection telemetry">
+    <h2 class="panel-heading">Link telemetry</h2>
+
+    <div class="path-diagram" id="pathDiagram" aria-hidden="false">
+      <div class="path-node" id="nodeLocal">
+        <span class="path-node-label">You</span>
+      </div>
+      <div class="path-line" id="pathLineA">
+        <span class="path-line-tag" id="candidateTag">—</span>
+      </div>
+      <div class="path-node path-node-mid" id="nodeRelay" hidden>
+        <span class="path-node-label">Relay</span>
+      </div>
+      <div class="path-line path-line-b" id="pathLineB" hidden></div>
+      <div class="path-node" id="nodeRemote">
+        <span class="path-node-label">Peer</span>
+      </div>
+    </div>
+
+    <div class="telemetry-grid">
+      <div class="telemetry-stat">
+        <span class="telemetry-value" id="throughputValue">0.0</span>
+        <span class="telemetry-unit">MB/s</span>
+        <span class="telemetry-label">Throughput</span>
+      </div>
+      <div class="telemetry-stat">
+        <span class="telemetry-value" id="candidateValue">—</span>
+        <span class="telemetry-label">Path type</span>
+      </div>
+      <div class="telemetry-stat">
+        <span class="telemetry-value" id="chunkSizeValue">128</span>
+        <span class="telemetry-unit">KB</span>
+        <span class="telemetry-label">Chunk size</span>
+      </div>
+      <div class="telemetry-stat">
+        <span class="telemetry-value" id="bufferedValue">0</span>
+        <span class="telemetry-unit">KB</span>
+        <span class="telemetry-label">Send buffer</span>
+      </div>
+    </div>
+
+    <svg class="sparkline" id="sparkline" viewBox="0 0 300 60" preserveAspectRatio="none" role="img" aria-label="Throughput over time">
+      <polyline id="sparklinePoly" points="" />
+    </svg>
+  </section>
+
+  <!-- TRANSFER -->
+  <section class="panel panel-transfer" id="transferPanel" aria-label="File transfer">
+    <h2 class="panel-heading">Send a file</h2>
+
+    <label class="dropzone" id="dropzone" for="fileInput">
+      <input type="file" id="fileInput" hidden />
+      <span class="dropzone-title">Drop a file here, or click to choose</span>
+      <span class="dropzone-sub">Connect to a peer first — nothing uploads anywhere.</span>
+    </label>
+
+    <div class="save-engine-note" id="saveEngineNote"></div>
+
+    <ul class="transfer-list" id="transferList" aria-live="polite"></ul>
+  </section>
+
+  <!-- USAGE / BUDGET -->
+  <section class="panel panel-usage" id="usagePanel" aria-label="Free-tier usage">
+    <h2 class="panel-heading">Free-tier usage this session</h2>
+    <div class="usage-rows" id="usageRows"></div>
+    <p class="usage-note">Logged locally only. Nothing here is sent anywhere — it's a guardrail so you notice before a free tier ceiling, not a metering service.</p>
+  </section>
+
+</main>
+
+<!-- Typed-confirmation modal for executable-adjacent files -->
+<div class="modal-overlay" id="confirmModal" hidden>
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h3 id="confirmTitle">This file type can run code</h3>
+    <p id="confirmBody"></p>
+    <p class="modal-instruction">Type <strong id="confirmWord"></strong> to continue.</p>
+    <input class="input" id="confirmInput" type="text" autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmCancel" type="button">Cancel</button>
+      <button class="btn btn-danger" id="confirmProceed" type="button" disabled>Send anyway</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

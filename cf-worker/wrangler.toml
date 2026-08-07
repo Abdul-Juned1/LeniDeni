@@ -1,0 +1,18 @@
+name = "p2p-hyper-share-signaling"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Free plan: Durable Objects must use the SQLite storage backend.
+[[durable_objects.bindings]]
+name = "ROOM_SIGNALING"
+class_name = "RoomSignaling"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomSignaling"]
+
+# Optional — only needed if you want Cloudflare Realtime TURN instead of
+# STUN-only. Set with:
+#   wrangler secret put CF_TURN_KEY_ID
+#   wrangler secret put CF_TURN_API_TOKEN
+# Get both from the Cloudflare dashboard under Realtime -> TURN.

@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "lenideni",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-08-08",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  }
+}

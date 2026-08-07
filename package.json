@@ -1,0 +1,10 @@
+{
+  "name": "p2p-hyper-share",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Zero-cost student prototype: direct browser-to-browser file transfer over WebRTC.",
+  "scripts": {
+    "dev": "npx serve . -l 5173"
+  }
+}

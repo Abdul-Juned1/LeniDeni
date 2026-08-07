@@ -1,0 +1,9 @@
+worker/
+wrangler.jsonc
+wrangler.toml
+package.json
+package-lock.json
+node_modules/
+README.md
+cf-worker/
+functions/
