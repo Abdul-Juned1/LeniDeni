@@ -26,7 +26,8 @@ let MeteredPeerCtor = null;
 async function loadSdk() {
   if (MeteredPeerCtor) return MeteredPeerCtor;
   const mod = await import('https://esm.sh/@metered-ca/realtime@latest');
-  MeteredPeerCtor = mod.MeteredPeer;
+  console.log('[metered] raw module export keys:', Object.keys(mod));
+  MeteredPeerCtor = mod.MeteredPeer ?? mod.default?.MeteredPeer ?? mod.default;
   return MeteredPeerCtor;
 }
 
@@ -41,22 +42,33 @@ export class MeteredSignaling {
   }
 
   async connect(roomCode) {
+    console.log('[metered] loading SDK…');
     const MeteredPeer = await loadSdk();
-    this.roomCode = roomCode;
+    console.log('[metered] SDK loaded, MeteredPeer =', MeteredPeer);
+    if (typeof MeteredPeer !== 'function') {
+      console.error('[metered] MeteredPeer export is not a constructor — the esm.sh import likely resolved the wrong export shape. Check what `mod` actually contains (see console.log above loadSdk()\'s return).');
+    }
 
+    this.roomCode = roomCode;
     this.peer = new MeteredPeer({ apiKey: CONFIG.METERED.API_KEY });
+    console.log('[metered] peer instance created', this.peer);
 
     // Presence: another browser joining the same room code is our peer.
-    this.peer.on('peer-joined', ({ peer: remote }) => {
-      this._peerJoinedCb(remote.id ?? remote.peerId ?? remote);
+    this.peer.on('peer-joined', (payload) => {
+      console.log('[metered] event: peer-joined', payload);
+      const remote = payload?.peer ?? payload;
+      this._peerJoinedCb(remote?.id ?? remote?.peerId ?? remote);
     });
-    this.peer.on('peer-left', ({ peer: remote } = {}) => {
+    this.peer.on('peer-left', (payload) => {
+      console.log('[metered] event: peer-left', payload);
+      const remote = payload?.peer ?? payload;
       this._peerLeftCb(remote?.id ?? remote?.peerId ?? remote);
     });
 
     // Direct/room messages carrying our own SDP+ICE envelopes.
     // Adapter point — see file header if this event/shape has moved on.
     this.peer.on('message', (msg) => {
+      console.log('[metered] event: message', msg);
       const from = msg.from ?? msg.peerId ?? msg.sender;
       const body = msg.body ?? msg.data ?? msg;
       if (from && body && body.__p2phs) this._signalCb(from, body.payload);
@@ -64,10 +76,22 @@ export class MeteredSignaling {
 
     // Capture TURN creds if the SDK surfaces them directly on connect.
     this.peer.on('ready', (info) => {
+      console.log('[metered] event: ready', info);
       if (info?.iceServers) this._knownIceServers = info.iceServers;
     });
 
-    await this.peer.join(roomCode);
+    // Log literally every event the emitter fires, if it exposes a
+    // wildcard/onAny hook — harmless no-op if it doesn't.
+    try { this.peer.onAny?.((event, ...args) => console.log('[metered] event(onAny):', event, args)); } catch { /* not supported */ }
+
+    console.log('[metered] calling peer.join(', roomCode, ')…');
+    try {
+      const joinResult = await this.peer.join(roomCode);
+      console.log('[metered] peer.join() resolved with', joinResult);
+    } catch (err) {
+      console.error('[metered] peer.join() rejected/threw:', err);
+      throw err;
+    }
   }
 
   onPeerJoined(cb) { this._peerJoinedCb = cb; }
