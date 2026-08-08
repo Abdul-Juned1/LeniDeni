@@ -280,10 +280,15 @@ body{
 .modal-overlay{
   position: fixed; inset: 0;
   background: rgba(4,6,8,0.72);
-  display:flex; align-items:center; justify-content:center;
+  align-items:center; justify-content:center;
   padding: 20px;
-  z-index: 50;
+  z-index: 50;  
 }
+
+.modal-overlay:not([hidden]){
+  display:flex;
+} 
+ 
 .modal{
   background: var(--surface);
   border: 1px solid var(--hairline);
